@@ -1,0 +1,5 @@
+import { describe, expect, it } from "vitest";
+import { finger, sigma } from "./evaluator";
+import { advanceHold, emptyHold, stableScore } from "./scoring";
+const face=(blendshapes:Record<string,number>={})=>({ts:1,blendshapes,landmarks:Array.from({length:468},(_,i)=>({x:.5+(i===234?-.18:i===454?.18:i===10?0:i===152?0:0),y:i===10?.25:i===152?.75:.5}))});
+describe("evaluators",()=>{it("neutral face does not pass Sigma",()=>expect(sigma(face()).gates.eyes).toBe(false));it("squint and brow gates are both required",()=>{const x=sigma(face({eyeSquintLeft:1,eyeSquintRight:1,browDownLeft:0,browDownRight:0}));expect(x.quality).toBeGreaterThan(50);expect(x.gates.brows).toBe(false)});it("no hand cannot pass finger target",()=>expect(finger(face(),[]).gates.finger).toBe(false));it("same timestamp cannot fill hold",()=>{let h=advanceHold(emptyHold(),true,80,100);h=advanceHold(h,true,80,100);expect(stableScore(h)).toBe(0)});it("gapped samples reset hold",()=>{let h=advanceHold(emptyHold(),true,80,100);h=advanceHold(h,true,80,401);expect(h.since).toBeNull()})});
